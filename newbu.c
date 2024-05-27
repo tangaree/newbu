@@ -34,9 +34,9 @@ int c_aggro = 1;
 int m_aggro = 1;
 
 
-int get_valid_input(const char*, int, int);
+
 // 유효하지 않을 경우 재입력
-int get_valid_input(const char* prompt, int min, int max) {
+int retry(const char* prompt, int min, int max) {
     int value;
     while (1) {
         printf("%s (%d~%d)>>\n", prompt, min, max);
@@ -69,9 +69,9 @@ void Outro(int success) {
 
 // 열차 입력
 void Train() {
-    length = get_valid_input("열차의 길이를 입력하세요", Len_MIN, Len_MAX);
-    m_stamina = get_valid_input("마동석의 체력을 입력하세요", STM_MIN, STM_MAX);
-    p = get_valid_input("이동 확률을 입력하세요", PROB_MIN, PROB_MAX);
+    length = retry("열차의 길이를 입력하세요", Len_MIN, Len_MAX);
+    m_stamina = retry("마동석의 체력을 입력하세요", STM_MIN, STM_MAX);
+    p = retry("이동 확률을 입력하세요", PROB_MIN, PROB_MAX);
 
     c = length - 7;
     z = length - 4;
@@ -103,15 +103,15 @@ void form_train() {
     }
 }
 //시민 좀비 이동
-void z_c_m(int sum1, int sum2, int turn) {
-    if (sum1) {
-        printf("시민: 이동 %d -> %d\n", c + 1, c);
+void z_c_m(int citizen_moved, int zombie_moved, int turn) {
+    if (citizen_moved) {
+        printf("시민: 이동 %d -> %d (aggro : %d)\n", c + 1, c, c_aggro);
     }
     else {
-        printf("시민: 정지 %d -> %d\n", c, c);
+        printf("시민: 정지 %d -> %d (aggro : %d)\n", c, c, c_aggro);
     }
     if (turn % 2 == 1) {
-        if (sum2) {
+        if (zombie_moved) {
             printf("좀비: 이동 %d -> %d\n", z + 1, z);
         }
         else {
@@ -123,33 +123,53 @@ void z_c_m(int sum1, int sum2, int turn) {
     }
 }
 
+//시민이동
+int c_m(){
+    int b = rand() % 100;
+    if (b <= 100 - p) {
+        --c;
+        ++c_aggro;
+        return 1;//이동성공
+    }
+    return 0;//이동 실패
+}
+
+
+// 좀비 이동 (2턴 주기)
+int z_m(int turn){
+    if (turn % 2 == 1) {
+        int d = rand() % 100;
+        if (d <= p) {
+            --z;
+            return 1; //이동 성공
+        }
+    }
+    return 0;//이동 실패 똔는 이동 불가턴
+}
+
+
 // 게임 진행
 void play_game() {
     int turn = 0;
+    //초기열차
+    form_train();
+    printf("\n\n\n");
+
     while (1) {
         ++turn;
-        int sum1 = 0;
-        int sum2 = 0;
-
-        // 시민 이동
-        int b = rand() % 100;
-        if (b <= 100 - p) {
-            --c;
-            ++sum1;
-        }
-
-        // 좀비 이동 (2턴 주기)
-        if (turn % 2 == 1) {
-            int d = rand() % 100;
-            if (d <= p) {
-                --z;
-                ++sum2;
-            }
-        }
+        int citizen_moved = 0;
+        int zombie_moved = 0;
+        
+        //시민이동
+        citizen_moved = c_m();
+        
+        //좀비이동
+        zombie_moved = z_m(turn);
 
         // 기차 형성 및 상태 출력
         form_train();
-        z_c_m(sum1, sum2, turn);
+        printf("\n");
+        z_c_m(citizen_moved, zombie_moved, turn);
 
         // 게임 종료 조건 확인
         if (c == 1 || z == c + 1) {
