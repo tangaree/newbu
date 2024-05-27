@@ -33,14 +33,14 @@ int m_stamina;
 int c_aggro = 1;
 int m_aggro = 1;
 int m_stamina;
-
+int z_n_m = 0; // 좀비가 다음 턴에 이동 불가능한지 여부
 
 
 // 유효하지 않을 경우 재입력
 int retry(const char* prompt, int min, int max) {
     int value;
     while (1) {
-        printf("%s (%d~%d)>>\n", prompt, min, max);
+        printf("%s (%d~%d)>>", prompt, min, max);
         int result = scanf_s("%d", &value);
         while (getchar() != '\n'); // 버퍼 비우기
         if (result == 1 && value >= min && value <= max) {
@@ -180,8 +180,9 @@ void m_m() {
     }
 }
 //마동석 상태창
-void ma_st() {
-
+int ma_st() {
+    int action = retry("마동석 행동 (0: 휴식, 1: 도발, 2: 붙잡기)>>", ACTION_REST, ACTION_PULL);
+   
 }
 
 // 게임 진행
@@ -195,15 +196,15 @@ void play_game() {
         ++turn;
         int citizen_moved = 0;
         int zombie_moved = 0;
-        
+
         //시민이동
         citizen_moved = c_m();
-        
+
         //좀비이동
         zombie_moved = z_m(turn);
         printf("\n\n");
 
-        
+
         // 기차 형성 및 상태 출력
         form_train();
         printf("\n");
@@ -212,13 +213,35 @@ void play_game() {
 
         //마동석 이동
         m_m();
+        printf("\n");
 
         // 기차 상태 재출력
         form_train();
         printf("\n");
-        
-        //마동석 위치
-        printf("마동석 위치 : %d (어그로 %d, 스태미나 %d)\n", m, m_aggro, m_stamina);
+
+        //마동석 위치,어그로,체력
+        printf("마동석 위치 : %d (어그로 %d, 스태미나 %d)\n\n", m, m_aggro, m_stamina);
+
+        // 마동석 행동
+        int action = ma_st();
+        if (action == ACTION_REST) {
+            m_stamina++;
+            if (m_stamina > STM_MAX) m_stamina = STM_MAX;
+            m_aggro--;
+            if (m_aggro < AGGRO_MIN) m_aggro = AGGRO_MIN;
+        } // 휴식
+        else if (action == ACTION_PROVOKE) {
+            m_aggro = AGGRO_MAX; // 어그로 최대치
+        } // 도발
+        else if (action == ACTION_PULL) {
+            m_stamina--;
+            if (m_stamina < STM_MIN) m_stamina = STM_MIN;
+            m_aggro += 2;
+            if (m_aggro > AGGRO_MAX) m_aggro = AGGRO_MAX; 
+        } // 붙잡기
+ 
+        //마동석 위치,어그로,체력
+        printf("마동석 위치 : %d (어그로 %d, 스태미나 %d)\n\n", m, m_aggro, m_stamina);
 
         // 게임 종료 조건 확인
         if (c == 1 || z == c + 1) {
