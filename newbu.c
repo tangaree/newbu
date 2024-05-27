@@ -48,10 +48,127 @@ int get_valid_input(const char* prompt, int min, int max) {
     }
 }
 
-
 // 인트로
-void print_intro() {
+void Intro() {
     printf("부산헹 게임 시작합니다.\n");
     printf("시민의 게임 승리 조건은, 현재 열차 칸에서 탈출하는 것 입니다.\n");
     printf("패배 조건은 좀비에게 잡히는 것입니다.\n");
+}
+
+// 아웃트로 
+void Outro(int success) {
+    if (success) {
+        printf("탈출 성공\n");
+        printf("시민이 다음 열차로 넘어갔습니다.\n");
+    }
+    else {
+        printf("게임 끝\n");
+        printf("시민이 좀비에게 공격당했습니다.\n");
+    }
+}
+
+// 열차 입력
+void Train() {
+    length = get_valid_input("열차의 길이를 입력하세요", Len_MIN, Len_MAX);
+    m_stamina = get_valid_input("마동석의 체력을 입력하세요", STM_MIN, STM_MAX);
+    p = get_valid_input("이동 확률을 입력하세요", PROB_MIN, PROB_MAX);
+
+    c = length - 7;
+    z = length - 4;
+    m = length - 3;
+}
+
+// 열차를 형성
+void form_train() {
+    for (int j = 0; j < 2; j++) {
+        if (j == 1) {
+            printf("#");
+            for (int a = 0; a < length - 2; a++) {
+                if (j == 1 && a == c) {
+                    printf("C");
+                }
+                else if (j == 1 && a == z) {
+                    printf("Z");
+                }
+                else if (j == 1 && a == m) {
+                    printf("M");
+                }
+                else {
+                    printf(" ");
+                }
+            }printf("#\n");
+        }for (int i = 0; i < length; i++) {
+            printf("#");
+        }printf("\n");
+    }
+}
+//시민 좀비 이동
+void z_c_m(int sum1, int sum2, int turn) {
+    if (sum1) {
+        printf("시민: 이동 %d -> %d\n", c + 1, c);
+    }
+    else {
+        printf("시민: 정지 %d -> %d\n", c, c);
+    }
+    if (turn % 2 == 1) {
+        if (sum2) {
+            printf("좀비: 이동 %d -> %d\n", z + 1, z);
+        }
+        else {
+            printf("좀비: 정지 %d -> %d\n", z, z);
+        }
+    }
+    else {
+        printf("좀비: %d (이동 불가 턴)\n", z);
+    }
+}
+
+// 게임 진행
+void play_game() {
+    int turn = 0;
+    while (1) {
+        ++turn;
+        int sum1 = 0;
+        int sum2 = 0;
+
+        // 시민 이동
+        int b = rand() % 100;
+        if (b <= 100 - p) {
+            --c;
+            ++sum1;
+        }
+
+        // 좀비 이동 (2턴 주기)
+        if (turn % 2 == 1) {
+            int d = rand() % 100;
+            if (d <= p) {
+                --z;
+                ++sum2;
+            }
+        }
+
+        // 기차 형성 및 상태 출력
+        form_train();
+        z_c_m(sum1, sum2, turn);
+
+        // 게임 종료 조건 확인
+        if (c == 1 || z == c + 1) {
+            break;
+        }
+    }
+
+    if (c == 1) {
+        Outro(1);
+    }
+    else {
+        Outro(0);
+    }
+}
+
+int main(void) {
+    srand((unsigned int)time(NULL)); // 난수 초기화
+    Intro();
+    Train();
+    play_game();
+    return 0;
 }
