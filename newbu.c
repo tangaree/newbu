@@ -32,6 +32,7 @@ int c, z, m; // 시민, 좀비, 마동석 위치
 int m_stamina;
 int c_aggro = 1;
 int m_aggro = 1;
+int m_stamina;
 
 
 
@@ -129,9 +130,18 @@ int c_m(){
     if (b <= 100 - p) {
         --c;
         ++c_aggro;
+        if (c_aggro > AGGRO_MAX) {
+            c_aggro = AGGRO_MAX;//어그로가 최대치를 넘지 않도록
+        }
         return 1;//이동성공
     }
-    return 0;//이동 실패
+    else {
+        --c_aggro;
+        if (c_aggro < AGGRO_MIN) {
+            c_aggro = AGGRO_MIN; //어그로가 최소치를 넘지 않도록
+        }
+        return 0;//이동 실패
+    }
 }
 
 
@@ -146,14 +156,40 @@ int z_m(int turn){
     }
     return 0;//이동 실패 똔는 이동 불가턴
 }
+//마동석 이동
+void m_m() {
+    int ma_move;
+    while (1){
+        ma_move = retry("마동석 이동 (0: 정지, 1: 왼쪽 이동)>>", MOVE_STAY, MOVE_LEFT);
+        if (ma_move == MOVE_LEFT) {
+            if (m - 1 == z) {
+                printf("마동석은 좀비와 인접해 있어 이동할 수 없습니다.\n");
+            }
+            else {
+                --m;
+                ++m_aggro;
+                if (m_aggro > AGGRO_MAX) {
+                    m_aggro = AGGRO_MAX;
+                }
+                break;//반복종료
+            }
+        }
+        else {
+            break;//반복 종료
+        }
+    }
+}
+//마동석 상태창
+void ma_st() {
 
+}
 
 // 게임 진행
 void play_game() {
     int turn = 0;
     //초기열차
     form_train();
-    printf("\n\n\n");
+    printf("\n\n");
 
     while (1) {
         ++turn;
@@ -165,11 +201,24 @@ void play_game() {
         
         //좀비이동
         zombie_moved = z_m(turn);
+        printf("\n\n");
 
+        
         // 기차 형성 및 상태 출력
         form_train();
         printf("\n");
+
         z_c_m(citizen_moved, zombie_moved, turn);
+
+        //마동석 이동
+        m_m();
+
+        // 기차 상태 재출력
+        form_train();
+        printf("\n");
+        
+        //마동석 위치
+        printf("마동석 위치 : %d (어그로 %d, 스태미나 %d)\n", m, m_aggro, m_stamina);
 
         // 게임 종료 조건 확인
         if (c == 1 || z == c + 1) {
