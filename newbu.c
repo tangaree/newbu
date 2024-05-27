@@ -1,3 +1,12 @@
+//시민이 이동하면 이동했다고 출력
+// 시민이 이동하지 않았다면 이동하지 않았다고 출력
+//좀비가 공격했다면 누구를 공격했는지 출력
+//좀비가 공격하지 않았다면 공격하지 않았다고 출력
+//좀비와 마동석이 떨어지면 붙잡기가 안 떠야함
+//좀비 바로 옆에 마동석이 있다면이동하기가 안 떠야함
+//마동석이 붙잡기를 했을때 붙잡기 성공하면 다음턴 이동할 수 없다 표시, 붙잡기 실패하면 실패했다 표시
+//좀비 공격/어그로가 높은쪽으로 이동/어그로가 같으면 시민방향
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -103,20 +112,21 @@ void form_train() {
         }printf("\n");
     }
 }
+
 //시민 좀비 이동
 void z_c_m(int citizen_moved, int zombie_moved, int turn) {
     if (citizen_moved) {
-        printf("시민: 이동 %d -> %d (aggro : %d)\n", c + 1, c, c_aggro);
+        printf("시민: %d -> %d (aggro : %d)\n", c + 1, c, c_aggro);
     }
     else {
-        printf("시민: 정지 %d -> %d (aggro : %d)\n", c, c, c_aggro);
+        printf("시민: %d -> %d (aggro : %d)\n", c, c, c_aggro);
     }
     if (turn % 2 == 1) {
         if (zombie_moved) {
-            printf("좀비: 이동 %d -> %d\n", z + 1, z);
+            printf("좀비: %d -> %d\n", z + 1, z);
         }
         else {
-            printf("좀비: 정지 %d -> %d\n", z, z);
+            printf("좀비: %d -> %d\n", z, z);
         }
     }
     else {
@@ -147,6 +157,10 @@ int c_m(){
 
 // 좀비 이동 (2턴 주기)
 int z_m(int turn){
+    if (z_n_m) {
+        z_n_m = 0;
+        return;
+    }
     if (turn % 2 == 1) {
         int d = rand() % 100;
         if (d <= p) {
@@ -236,6 +250,14 @@ void play_game() {
         else if (action == ACTION_PULL) {
             m_stamina--;
             if (m_stamina < STM_MIN) m_stamina = STM_MIN;
+            int b = rand() % 100;
+            if (b <= 100 - p) {
+                printf("좀비 붙잡기를 성공했습니다. 다음 턴에 좀비 이동 불가.\n");
+                z_n_m = 1;
+            }
+            else {
+                printf("좀비 붙잡기를 실패했습니다.\n");
+            }
             m_aggro += 2;
             if (m_aggro > AGGRO_MAX) m_aggro = AGGRO_MAX; 
         } // 붙잡기
