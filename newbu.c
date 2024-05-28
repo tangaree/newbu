@@ -1,11 +1,3 @@
-
-//좀비가 공격했다면 누구를 공격했는지 출력
-//좀비가 공격하지 않았다면 공격하지 않았다고 출력
-//마동석 이동하지 않을 경우 어그로 -1 
-//마동석 휴식시 스태미나 +1
-//마동석 어그로가 더 높을경우 마동석쪽으로 이동
-//근데 마동석을 넘어가면 안됨
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -172,10 +164,10 @@ int z_m(int turn){
     if (turn % 2 == 1) {
         int d = rand() % 100;
         if (d <= p) {
-            if (m_aggro > c_aggro) {
+            if (m_aggro > c_aggro && z- 1 > m) {
                 ++z;
             }
-            else if (c_aggro >= m_aggro) {
+            else if (c_aggro >= m_aggro && z- 1 != c) {
                 --z;
             }
             return 1; //이동 성공
@@ -214,6 +206,10 @@ void m_m() {
     while (1){
         if (m - 1 == z) {
             ma_move = retry("마동석 이동 (0: 정지)>>", MOVE_STAY, MOVE_STAY);
+            m_aggro--;  // 정지를 선택했으므로 어그로 감소
+            if (m_aggro < AGGRO_MIN) {
+                m_aggro = AGGRO_MIN;
+            }
             break;
         }
         else {
@@ -227,8 +223,12 @@ void m_m() {
                 break;
             }
             else {
-                break;
+                m_aggro--;
+                if (m_aggro < AGGRO_MIN) {
+                    m_aggro = AGGRO_MIN;
+                }
             }
+            break;
         }
         
     }
@@ -243,6 +243,7 @@ int ma_st() {
     else {
         action = retry("마동석 행동(0 : 휴식, 1: 도발) >>", ACTION_REST, ACTION_PROVOKE);
     }
+    return action;
 }
 
 // 게임 진행
@@ -270,6 +271,10 @@ void play_game() {
         printf("\n");
 
         z_c_m(citizen_moved, zombie_moved, turn);
+        // 마동석 이전 상태 저장
+        int prev_aggro = m_aggro;
+        int prev_stamina = m_stamina;
+        int prev_m = m;
 
         //마동석 이동
         m_m();
@@ -280,7 +285,23 @@ void play_game() {
         printf("\n");
 
         //마동석 위치,어그로,체력
-        printf("마동석 위치 : %d (어그로 %d, 스태미나 %d)\n\n", m, m_aggro, m_stamina);
+        if (m != prev_m || m_aggro != prev_aggro || m_stamina != prev_stamina) {
+            printf("madongseok: %d (", m);
+            if (m != prev_m) {
+                printf("pos: %d -> %d, ", prev_m, m);
+            }
+            if (m_aggro != prev_aggro) {
+                printf("aggro: %d -> %d, ", prev_aggro, m_aggro);
+            }
+            if (m_stamina != prev_stamina) {
+                printf("stamina: %d -> %d", prev_stamina, m_stamina);
+            }
+            printf(")\n");
+        }
+        else {
+            printf("madongseok: %d (aggro: %d, stamina: %d)\n", m, m_aggro, m_stamina);
+        }
+
 
         //좀비공격,시민
         printf("citizen does nothing.\n");
@@ -313,7 +334,23 @@ void play_game() {
         } // 붙잡기
  
         //마동석 위치,어그로,체력
-        printf("마동석 위치 : %d (어그로 %d, 스태미나 %d)\n\n", m, m_aggro, m_stamina);
+        if (m != prev_m || m_aggro != prev_aggro || m_stamina != prev_stamina) {
+            printf("madongseok: %d (", m);
+            if (m != prev_m) {
+                printf("pos: %d -> %d, ", prev_m, m);
+            }
+            if (m_aggro != prev_aggro) {
+                printf("aggro: %d -> %d, ", prev_aggro, m_aggro);
+            }
+            if (m_stamina != prev_stamina) {
+                printf("stamina: %d -> %d", prev_stamina, m_stamina);
+            }
+            printf(")\n");
+        }
+        else {
+            printf("madongseok: %d (aggro: %d, stamina: %d)\n", m, m_aggro, m_stamina);
+        }
+
 
         // 게임 종료 조건 확인
         if (c == 1 || z == c + 1) {
