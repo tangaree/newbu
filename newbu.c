@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -53,7 +52,6 @@ int retry(const char* prompt, int min, int max) {
             return value;
         }
         else {
-            printf("잘못된 값을 입력했습니다. 다시 입력해주세요.\n");
             while (getchar() != '\n'); // 잘못된 입력의 경우에도 버퍼 비우기
         }
     }
@@ -67,14 +65,20 @@ void Intro() {
 }
 
 // 아웃트로 
-void Outro(int success) {
+void Outro(int success, int ma_dead) {
     if (success) {
         printf("탈출 성공\n");
         printf("시민이 다음 열차로 넘어갔습니다.\n");
     }
     else {
-        printf("게임 끝\n");
-        printf("시민이 좀비에게 공격당했습니다.\n");
+        if (ma_dead) {
+            printf("게임오바\n");
+            printf("마동석 die");
+        }
+        else {
+            printf("게임오비\n");
+            printf("시민 die");
+        }
     }
 }
 
@@ -117,21 +121,21 @@ void form_train() {
 //시민 좀비 이동
 void z_c_m(int citizen_moved, int zombie_moved, int turn) {
     if (citizen_moved) {
-        printf("시민: %d -> %d (aggro : %d)\n", c + 1, c, c_aggro);
+        printf("시민: 이동 %d -> %d (aggro : %d)\n", c + 1, c, c_aggro);
     }
     else {
-        printf("시민: %d -> %d (aggro : %d)\n", c, c, c_aggro);
+        printf("시민: 정지 %d -> %d (aggro : %d)\n", c, c, c_aggro);
     }
     if (turn % 2 == 1) {
         if (zombie_moved) {
-            printf("좀비: %d -> %d\n", z + 1, z);
+            printf("좀비: 이동 %d -> %d\n\n", z + 1, z);
         }
         else {
-            printf("좀비: %d -> %d\n", z, z);
+            printf("좀비: 정지 %d -> %d\n\n", z, z);
         }
     }
     else {
-        printf("좀비: %d (이동 불가 턴)\n", z);
+        printf("좀비: %d (이동 불가 턴)\n\n", z);
     }
 }
 
@@ -181,32 +185,35 @@ void z_att() {
     if (z == c + 1 && z == m - 1) {
         if (c_aggro >= m_aggro) {
             printf("좀비가 시민을 공격했습니다.\n(aggro: %d vs. %d)\n", c_aggro, m_aggro);
-            Outro(0);
+            Outro(0, 0);
             exit(0);
         }
         else
         {
             printf("좀비가 마동석을 공격했습니다\n(aggro: %d vs. %d)\n", c_aggro, m_aggro);
             --m_stamina;
-            printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);
-            if (m_stamina <= STM_MIN) {
-                Outro(0);
-                exit(0);
+            if (m_stamina <= 1) {
+                m_die();
             }
+            printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);
+        }if (m_stamina <= STM_MIN) {
+            m_die();
         }
     }else if (z == c + 1) {
         printf("좀비가 시민을 공격했습니다!\n");
-        Outro(0);
+        Outro(0, 0);
         exit(0);
     }
     else if (z == m - 1) {
         printf("좀비가 마동석을 공격했습니다!\n");
         --m_stamina;
-        printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);
-        if (m_stamina <= STM_MIN) {
-            Outro(0);
-            exit(0);
+        /*printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);*/
+        if (m_stamina <= 1) {
+            m_die();
+        }if (m_stamina <= STM_MIN) {
+            m_die();
         }
+        printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);
     }
     else {
         printf("zombie attckednobody.\n");
@@ -214,8 +221,9 @@ void z_att() {
 }
 
 
-int z_act() {
-
+int m_die() {
+    Outro(0, 1);
+    exit(0);
 }
 
 //마동석 이동
@@ -333,6 +341,7 @@ void play_game() {
 
         // 마동석 행동
         int action = ma_st();
+
         if (action == ACTION_REST) {
             m_stamina++;
             if (m_stamina > STM_MAX) m_stamina = STM_MAX;
@@ -389,10 +398,13 @@ void play_game() {
     }
 
     if (c == 1) {
-        Outro(1);
+        Outro(1, 0); //시민이 탈출 성공
+    }
+    else if (m_stamina<= STM_MIN){
+        Outro(0,1); //마동석이 죽음
     }
     else {
-        Outro(0);
+        Outro(0, 0); //시민이 좀비에게 공격당함
     }
 }
 
