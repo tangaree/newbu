@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -177,7 +178,23 @@ int z_m(int turn){
 }
 
 void z_att() {
-    if (z == c + 1) {
+    if (z == c + 1 && z == m - 1) {
+        if (c_aggro >= m_aggro) {
+            printf("좀비가 시민을 공격했습니다.\n(aggro: %d vs. %d)\n", c_aggro, m_aggro);
+            Outro(0);
+            exit(0);
+        }
+        else
+        {
+            printf("좀비가 마동석을 공격했습니다\n(aggro: %d vs. %d)\n", c_aggro, m_aggro);
+            --m_stamina;
+            printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);
+            if (m_stamina <= STM_MIN) {
+                Outro(0);
+                exit(0);
+            }
+        }
+    }else if (z == c + 1) {
         printf("좀비가 시민을 공격했습니다!\n");
         Outro(0);
         exit(0);
@@ -185,6 +202,7 @@ void z_att() {
     else if (z == m - 1) {
         printf("좀비가 마동석을 공격했습니다!\n");
         --m_stamina;
+        printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);
         if (m_stamina <= STM_MIN) {
             Outro(0);
             exit(0);
@@ -293,8 +311,14 @@ void play_game() {
             if (m_aggro != prev_aggro) {
                 printf("aggro: %d -> %d, ", prev_aggro, m_aggro);
             }
+            else {
+                printf("aggro: %d, ", m_aggro);
+            }
             if (m_stamina != prev_stamina) {
                 printf("stamina: %d -> %d", prev_stamina, m_stamina);
+            }
+            else {
+                printf("stamina: %d", m_stamina);
             }
             printf(")\n");
         }
@@ -342,8 +366,14 @@ void play_game() {
             if (m_aggro != prev_aggro) {
                 printf("aggro: %d -> %d, ", prev_aggro, m_aggro);
             }
+            else {
+                printf("aggro: %d, ", m_aggro);
+            }
             if (m_stamina != prev_stamina) {
                 printf("stamina: %d -> %d", prev_stamina, m_stamina);
+            }
+            else {
+                printf("stamina: %d", m_stamina);
             }
             printf(")\n");
         }
