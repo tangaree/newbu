@@ -1,8 +1,10 @@
-//시민이 이동하면 이동했다고 출력
-// 시민이 이동하지 않았다면 이동하지 않았다고 출력
+
 //좀비가 공격했다면 누구를 공격했는지 출력
 //좀비가 공격하지 않았다면 공격하지 않았다고 출력
-//좀비 공격/어그로가 높은쪽으로 이동/어그로가 같으면 시민방향
+//마동석 이동하지 않을 경우 어그로 -1 
+//마동석 휴식시 스태미나 +1
+//마동석 어그로가 더 높을경우 마동석쪽으로 이동
+//근데 마동석을 넘어가면 안됨
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,9 +55,13 @@ int retry(const char* prompt, int min, int max) {
             printf("%s (%d~%d)>>", prompt, min, max);
         }
         int result = scanf_s("%d", &value);
-        while (getchar() != '\n'); // 버퍼 비우기
         if (result == 1 && value >= min && value <= max) {
+            while (getchar() != '\n'); // 버퍼 비우기
             return value;
+        }
+        else {
+            printf("잘못된 값을 입력했습니다. 다시 입력해주세요.\n");
+            while (getchar() != '\n'); // 잘못된 입력의 경우에도 버퍼 비우기
         }
     }
 }
@@ -161,23 +167,54 @@ int c_m(){
 int z_m(int turn){
     if (z_n_m) {
         z_n_m = 0;
-        return;
+        return 0;
     }
     if (turn % 2 == 1) {
         int d = rand() % 100;
         if (d <= p) {
-            --z;
+            if (m_aggro > c_aggro) {
+                ++z;
+            }
+            else if (c_aggro >= m_aggro) {
+                --z;
+            }
             return 1; //이동 성공
         }
     }
     return 0;//이동 실패 똔는 이동 불가턴
 }
+
+void z_att() {
+    if (z == c + 1) {
+        printf("좀비가 시민을 공격했습니다!\n");
+        Outro(0);
+        exit(0);
+    }
+    else if (z == m - 1) {
+        printf("좀비가 마동석을 공격했습니다!\n");
+        --m_stamina;
+        if (m_stamina <= STM_MIN) {
+            Outro(0);
+            exit(0);
+        }
+    }
+    else {
+        printf("zombie attckednobody.\n");
+    }
+}
+
+
+int z_act() {
+
+}
+
 //마동석 이동
 void m_m() {
     int ma_move;
     while (1){
         if (m - 1 == z) {
-            ma_move = retry("마동석 이동 (0: 정지)>>", MOVE_STAY, MOVE_LEFT);
+            ma_move = retry("마동석 이동 (0: 정지)>>", MOVE_STAY, MOVE_STAY);
+            break;
         }
         else {
             ma_move = retry("마동석 이동 (0: 정지, 1: 왼쪽 이동)>>", MOVE_STAY, MOVE_LEFT);
@@ -244,6 +281,10 @@ void play_game() {
 
         //마동석 위치,어그로,체력
         printf("마동석 위치 : %d (어그로 %d, 스태미나 %d)\n\n", m, m_aggro, m_stamina);
+
+        //좀비공격,시민
+        printf("citizen does nothing.\n");
+        z_att();
 
         // 마동석 행동
         int action = ma_st();
