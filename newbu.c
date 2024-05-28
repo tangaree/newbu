@@ -2,9 +2,6 @@
 // 시민이 이동하지 않았다면 이동하지 않았다고 출력
 //좀비가 공격했다면 누구를 공격했는지 출력
 //좀비가 공격하지 않았다면 공격하지 않았다고 출력
-//좀비와 마동석이 떨어지면 붙잡기가 안 떠야함
-//좀비 바로 옆에 마동석이 있다면이동하기가 안 떠야함
-//마동석이 붙잡기를 했을때 붙잡기 성공하면 다음턴 이동할 수 없다 표시, 붙잡기 실패하면 실패했다 표시
 //좀비 공격/어그로가 높은쪽으로 이동/어그로가 같으면 시민방향
 
 #include <stdio.h>
@@ -49,7 +46,12 @@ int z_n_m = 0; // 좀비가 다음 턴에 이동 불가능한지 여부
 int retry(const char* prompt, int min, int max) {
     int value;
     while (1) {
-        printf("%s (%d~%d)>>", prompt, min, max);
+        if (min == max) {
+            printf("%s (%d)>>", prompt, min);
+        }
+        else {
+            printf("%s (%d~%d)>>", prompt, min, max);
+        }
         int result = scanf_s("%d", &value);
         while (getchar() != '\n'); // 버퍼 비우기
         if (result == 1 && value >= min && value <= max) {
@@ -174,29 +176,36 @@ int z_m(int turn){
 void m_m() {
     int ma_move;
     while (1){
-        ma_move = retry("마동석 이동 (0: 정지, 1: 왼쪽 이동)>>", MOVE_STAY, MOVE_LEFT);
-        if (ma_move == MOVE_LEFT) {
-            if (m - 1 == z) {
-                printf("마동석은 좀비와 인접해 있어 이동할 수 없습니다.\n");
-            }
-            else {
+        if (m - 1 == z) {
+            ma_move = retry("마동석 이동 (0: 정지)>>", MOVE_STAY, MOVE_LEFT);
+        }
+        else {
+            ma_move = retry("마동석 이동 (0: 정지, 1: 왼쪽 이동)>>", MOVE_STAY, MOVE_LEFT);
+            if (ma_move == MOVE_LEFT) {
                 --m;
                 ++m_aggro;
                 if (m_aggro > AGGRO_MAX) {
                     m_aggro = AGGRO_MAX;
                 }
-                break;//반복종료
+                break;
+            }
+            else {
+                break;
             }
         }
-        else {
-            break;//반복 종료
-        }
+        
     }
 }
+
 //마동석 상태창
 int ma_st() {
-    int action = retry("마동석 행동 (0: 휴식, 1: 도발, 2: 붙잡기)>>", ACTION_REST, ACTION_PULL);
-   
+    int action;
+    if (m - 1 == z) {
+        action = retry("마동석 행동 (0: 휴식, 1: 도발, 2: 붙잡기)>>", ACTION_REST, ACTION_PULL);
+    }
+    else {
+        action = retry("마동석 행동(0 : 휴식, 1: 도발) >>", ACTION_REST, ACTION_PROVOKE);
+    }
 }
 
 // 게임 진행
