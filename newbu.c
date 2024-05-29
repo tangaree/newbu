@@ -1,3 +1,4 @@
+//마동석 체력이 0이나 1일때 당기기 못하게 수정
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -121,7 +122,7 @@ void form_train() {
 //시민 좀비 이동
 void z_c_m(int citizen_moved, int zombie_moved, int turn) {
     if (citizen_moved) {
-        printf("시민: 이동 %d -> %d (aggro : %d)\n", c + 1, c, c_aggro);
+        printf("시민: 이동 %d -> %d (aggro : %d -> %d)\n", c + 1, c, c_aggro-1, c_aggro);
     }
     else {
         printf("시민: 정지 %d -> %d (aggro : %d)\n", c, c, c_aggro);
@@ -263,7 +264,9 @@ void m_m() {
 //마동석 상태창
 int ma_st() {
     int action;
-    if (m - 1 == z) {
+    if (m_stamina <= 1) {
+        action = retry("마동석 행동 (0: 휴식, 1: 도발)>>", ACTION_REST, ACTION_PROVOKE);
+    }else if (m - 1 == z) {
         action = retry("마동석 행동 (0: 휴식, 1: 도발, 2: 붙잡기)>>", ACTION_REST, ACTION_PULL);
     }
     else {
@@ -351,7 +354,7 @@ void play_game() {
         else if (action == ACTION_PROVOKE) {
             m_aggro = AGGRO_MAX; // 어그로 최대치
         } // 도발
-        else if (action == ACTION_PULL) {
+        else if (action == ACTION_PULL && m_stamina > 1) {
             m_stamina--;
             if (m_stamina < STM_MIN) m_stamina = STM_MIN;
             int b = rand() % 100;
