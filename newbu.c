@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <time.h>
 
+
 //파라미터
 #define STM_MAX 5 //마동석 체력
 #define STM_MIN 0
@@ -170,7 +171,7 @@ int z_m(int turn){
     if (turn % 2 == 1) {
         int d = rand() % 100;
         if (d <= p) {
-            if (m_aggro > c_aggro && z- 1 > m) {
+            if (m_aggro > c_aggro && z - 1 > m) {
                 ++z;
             }
             else if (c_aggro >= m_aggro && z- 1 != c) {
@@ -182,6 +183,7 @@ int z_m(int turn){
     return 0;//이동 실패 똔는 이동 불가턴
 }
 
+//좀비공격
 void z_att() {
     if (z == c + 1 && z == m - 1) {
         if (c_aggro >= m_aggro) {
@@ -214,7 +216,7 @@ void z_att() {
         }if (m_stamina <= STM_MIN) {
             m_die();
         }
-        printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);
+        /*printf("madongseok (stamina: %d -> %d)\n", m_stamina + 1, m_stamina);*/
     }
     else {
         printf("zombie attckednobody.\n");
@@ -261,7 +263,7 @@ void m_m() {
     }
 }
 
-//마동석 상태창
+//마동석 행동
 int ma_st() {
     int action;
     if (m_stamina <= 1) {
@@ -275,7 +277,7 @@ int ma_st() {
     return action;
 }
 
-// 게임 진행
+// 게임 진행,2 phases
 void play_game() {
     int turn = 0;
     //초기열차
