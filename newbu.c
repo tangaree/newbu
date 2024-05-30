@@ -418,5 +418,5 @@ int main(void) {
     Intro();
     Train();
     play_game();
-    return 0;
+    return 0;//
 }
